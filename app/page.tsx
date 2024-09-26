@@ -1,101 +1,88 @@
+"use client"
 import Image from "next/image";
+import React, { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [leftPupilPosition, setLeftPupilPosition] = useState({ x: 0, y: 0 });
+  const [rightPupilPosition, setRightPupilPosition] = useState({ x: 0, y: 0 });
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleMouseMove = (e: any) => {
+    const eyeContainer = e.currentTarget.getBoundingClientRect();
+    const centerX = eyeContainer.x + eyeContainer.width / 2;
+    const centerY = eyeContainer.y + eyeContainer.height / 2;
+
+    const deltaX = e.clientX - centerX;
+    const deltaY = e.clientY - centerY;
+
+    // Calculate tilt angles based on mouse position
+    const tiltX = (deltaY / 10).toFixed(2); // Adjust the divisor for sensitivity
+    const tiltY = (deltaX / 10).toFixed(2); // Adjust the divisor for sensitivity
+
+    setTilt({ x: -parseInt(tiltX), y: -parseInt(tiltY) });
+
+    const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), 12); // Limit pupil movement
+    const pupilX = Math.max(-3, Math.min(3, distance * Math.cos(Math.atan2(deltaY, deltaX))));
+    const pupilY = Math.max(-3, Math.min(3, distance * Math.sin(Math.atan2(deltaY, deltaX))));
+
+    setLeftPupilPosition({ x: pupilX, y: pupilY });
+    setRightPupilPosition({ x: pupilX, y: pupilY });
+  };
+
+  return (
+    <section className='py-10 text-white'>
+      <div className='container'>
+        <div className="flex items-center justify-center">
+          <div className="grid grid-cols-3 grid-rows-3 gap-2">
+            <div className="w-full h-48 bg-gray-700 border border-gray-600 col-span-2 rounded p-4">
+              <h2 className="font-bold">Who Am I?</h2>
+              <p className="max-w-md text-sm">
+                I am a full-stack developer with a strong foundation in mathematics,
+                holding a 1st class degree from Brunel University and an MSc in Mathematics.
+                My journey into software development began with coding in MATLAB, igniting my passion for technology.
+                Currently, as a Technical Officer at COCHE, I develop databases for clinical trial data using MongoDB, Next.js and hosted in AWS.
+              </p>
+            </div>
+            <div className="w-60 h-full bg-gray-700 border border-gray-600 row-span-2 flex items-center justify-center" onMouseMove={handleMouseMove}>
+              <div id="eye-container" className="bg-yellow-600 w-36 h-36 py-6 px-5 shadow-lg shadow-white transition-transform duration-150 rounded-full" style={{ transform: `perspective(500px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}>
+                <div className="flex items-center justify-between">
+                  <div id="eye" className="w-8 h-8 rounded-full bg-white mt-2">
+                    <div id="pupil" className="w-2 h-2 rounded-full bg-black top-3 left-3 relative" style={{ transform: `translate(${leftPupilPosition.x}px, ${leftPupilPosition.y}px)` }}></div>
+                  </div>
+                  <div id="eye" className="w-8 h-8 rounded-full bg-white mt-2">
+                    <div id="pupil" className="w-2 h-2 rounded-full bg-black top-3 left-3 relative" style={{ transform: `translate(${rightPupilPosition.x}px, ${rightPupilPosition.y}px)` }}></div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center mt-5">
+                  <div className="">
+                    <div className="w-16 h-8 relative overflow-hidden">
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full bg-transparent border-t-4 border-black" style={{ borderRadius: '0 0 50% 50%' }}></div>
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-transparent rounded-full" style={{ border: '4px solid black', borderTop: 'none', borderRadius: '50%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="w-60 h-full bg-gray-700 border border-gray-600 rounded row-span-2 text-center p-3">
+              <h2>Technology Stack</h2>
+              <p>JavaScript, React, Node.js, MongoDB</p> {/* Add details about the tech stack */}
+            </div>
+            <div className="w-60 h-48 bg-gray-700 border border-gray-600 rounded flex flex-col items-center justify-center text-center p-3 text-blue-400 font-bold font-sans">
+              <p>Logo Here</p>
+              <h2>Robert Chung</h2>
+              <h3>Full Stack Developer</h3>
+            </div>
+            <div className="w-full h-48 bg-gray-700 border border-gray-600 col-span-2 rounded p-5 text-xs text-gray-400">
+              <h3 className="font-bold">Work Experience</h3>
+              <ul className="list-disc list-inside">
+                <li><span className="font-bold break-words">(Current) Software Engineer @ COCHE: Sep 2022 - Present</span><br></br>Creating a database to hold clinical data for projects to train their<br></br> AI models </li>
+                <li><span className="font-bold break-words">Digital Messaging Specialist @ HSBC: Jul 2020 - Sep 2022</span><br></br>Used Salesforce to create marketing campaigns for HSBC products in <br></br>multiple countries</li>
+                <li><span className="font-bold break-words">Software Developer @ HSBC: Jun 2018 - Feb 2020 </span><br></br> Added functions to the HSBC Home and Away Website</li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </section>
   );
 }
